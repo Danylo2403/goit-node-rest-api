@@ -1,22 +1,58 @@
-import express from "express";
-import {
+const express = require("express");
+const ctrlWrapper = require("../helpers");
+const { validateBody, isValidId, authenticate } = require("../midlevares");
+const {
+  createContactSchema,
+  updateContactSchema,
+  updateFavoriteSchema,
+} = require("../schemas");
+const {
   getAllContacts,
-  getOneContact,
-  deleteContact,
+  getContactById,
   createContact,
-  updateContact,
-} from "../controllers/contactsControllers.js";
-
+  updateContactById,
+  updateStatusContact,
+  deleteContact,
+} = require("../controllers/contacts");
 const contactsRouter = express.Router();
 
-contactsRouter.get("/", getAllContacts);
+contactsRouter.get("/", authenticate, ctrlWrapper(getAllContacts));
 
-contactsRouter.get("/:id", getOneContact);
+contactsRouter.get(
+  "/:id",
+  authenticate,
+  isValidId,
+  ctrlWrapper(getContactById)
+);
 
-contactsRouter.delete("/:id", deleteContact);
+contactsRouter.delete(
+  "/:id",
+  authenticate,
+  isValidId,
+  ctrlWrapper(deleteContact)
+);
 
-contactsRouter.post("/", createContact);
+contactsRouter.post(
+  "/",
+  authenticate,
+  validateBody(createContactSchema),
+  ctrlWrapper(createContact)
+);
 
-contactsRouter.put("/:id", updateContact);
+contactsRouter.put(
+  "/:id",
+  authenticate,
+  validateBody(updateContactSchema),
+  isValidId,
+  ctrlWrapper(updateContactById)
+);
 
-export default contactsRouter;
+contactsRouter.patch(
+  "/:id/favorite",
+  authenticate,
+  validateBody(updateFavoriteSchema),
+  isValidId,
+  ctrlWrapper(updateStatusContact)
+);
+
+module.exports = contactsRouter;
